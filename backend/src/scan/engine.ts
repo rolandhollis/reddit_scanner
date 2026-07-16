@@ -343,24 +343,36 @@ async function finishScanRun(
 }
 
 // -----------------------------------------------------------------
-// Test-mode synthetic input. Each call rotates the reddit_id via a
-// timestamp so the dedupe check has something to actually reject on
-// re-run.
+// Test-mode synthetic input.
+//
+// Stable `reddit_id` so re-runs of the smoke test locally hit the
+// dedupe path (return `new_items: 0`) instead of accumulating a fresh
+// row every time.
+//
+// Permalink deliberately points at Reddit's homepage (not a fabricated
+// `r/…/comments/…/` URL that returns a 404) — earlier drafts had a
+// URL-with-timestamp scheme that misled reviewers into thinking these
+// were real hits. Title is explicitly prefixed with [TEST] for the
+// same reason.
 // -----------------------------------------------------------------
 function syntheticPosts(): RedditPostSummary[] {
-  const stamp = Date.now();
   return [
     {
-      reddit_id: `t3_smoke${stamp}`,
+      reddit_id: "t3_smoketest_v1",
       kind: "post",
-      id: `smoke${stamp}`,
-      title: "RetailMeNot cashback is a scam",
-      selftext: "The coupon code was invalid and cashback never posted.",
-      author: "smoke_bot",
-      subreddit: "smoke",
-      permalink: `https://www.reddit.com/r/smoke/comments/smoke${stamp}/example/`,
-      url: `https://www.reddit.com/r/smoke/comments/smoke${stamp}/example/`,
-      num_comments: 1,
+      id: "smoketest_v1",
+      title: "[TEST] Synthetic scan-engine mention — not a real Reddit post",
+      // "scam" is one of the seeded negative keywords — it's embedded
+      // here on purpose so the scan engine's negative-keyword filter
+      // matches and the insert / dedupe path actually gets exercised.
+      // If you rename or drop that seed keyword, tweak this too.
+      selftext:
+        "This row was inserted by POST /api/scan/run {test_mode: true} to exercise the DB insert + dedupe path without hitting Reddit. Contains the word scam so the negative-keyword filter matches. Safe to delete.",
+      author: "smoketest",
+      subreddit: "smoketest",
+      permalink: "https://www.reddit.com/",
+      url: "https://www.reddit.com/",
+      num_comments: 0,
       created_utc: new Date(),
       raw: { synthetic: true },
     },

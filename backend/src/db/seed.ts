@@ -9,8 +9,11 @@
  *   * a starter set of search terms, negative keywords, and
  *     topic→keyword mappings pulled from the RetailMeNot PRD so a
  *     fresh install has something to look at right away.
- *   * a synthetic flagged_mention so the dashboard isn't empty on
- *     first load.
+ *
+ * We deliberately do NOT seed a sample flagged_mention. The whole point
+ * of this app is that real Reddit hits show up after the first scan —
+ * fake seed data with fabricated `r/…/comments/seed…/` permalinks
+ * confuses reviewers who click through and hit a Reddit 404.
  *
  * Safe to re-run. Everything uses INSERT … ON CONFLICT DO NOTHING /
  * UPSERT so a partial state ends up in the same shape as a clean one.
@@ -95,26 +98,6 @@ async function seed() {
       [kw, topic],
     );
   }
-
-  console.log("Seeding sample flagged mention…");
-  await pool.query(
-    `INSERT INTO flagged_mentions
-       (reddit_id, type, permalink, subreddit, author, title, excerpt,
-        matched_keywords, suggested_topic, suggested_topic_source_keyword,
-        post_date, last_comment_count, raw_json)
-     VALUES
-       ('t3_seed0001', 'post',
-        'https://www.reddit.com/r/frugal/comments/seed0001/example/',
-        'frugal', 'sample_user',
-        'RetailMeNot codes never work for me',
-        'Every promo code I try from RetailMeNot is expired. Total scam. Anyone else?',
-        ARRAY['scam', 'expired']::TEXT[],
-        'Coupon Codes', 'code',
-        NOW() - INTERVAL '3 days',
-        4,
-        '{"seed": true}'::jsonb)
-     ON CONFLICT (reddit_id) DO NOTHING`,
-  );
 
   console.log("Seed complete.");
   await pool.end();

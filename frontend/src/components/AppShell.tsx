@@ -42,6 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <LastScanStrip
               lastRunAt={lastRun?.finished_at ?? lastRun?.started_at ?? null}
               status={lastRun?.status ?? null}
+              errorMessage={lastRun?.error_message ?? null}
               newCount={lastRun?.new_items ?? 0}
               resurfacedCount={lastRun?.resurfaced_items ?? 0}
               inFlight={!!inFlight}
@@ -116,12 +117,14 @@ function NavTab({
 function LastScanStrip({
   lastRunAt,
   status,
+  errorMessage,
   newCount,
   resurfacedCount,
   inFlight,
 }: {
   lastRunAt: string | null;
   status: "success" | "error" | "running" | null;
+  errorMessage: string | null;
   newCount: number;
   resurfacedCount: number;
   inFlight: boolean;
@@ -140,7 +143,24 @@ function LastScanStrip({
         Last scan {formatDistanceToNow(new Date(lastRunAt!), { addSuffix: true })}
       </span>
       {status === "error" ? (
-        <Badge variant="error">Error</Badge>
+        // Hover the badge for the full error message from scan_runs;
+        // the truncated inline preview is there so the reason is
+        // visible without an extra interaction (e.g. "Reddit
+        // credentials not configured" is diagnostic enough on its
+        // own).
+        <>
+          <Badge variant="error" title={errorMessage ?? "Scan failed"}>
+            Error
+          </Badge>
+          {errorMessage && (
+            <span
+              className="max-w-xs truncate text-red-600"
+              title={errorMessage}
+            >
+              {errorMessage}
+            </span>
+          )}
+        </>
       ) : (
         <>
           {newCount > 0 && <Badge variant="new">{newCount} new</Badge>}
