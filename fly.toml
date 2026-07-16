@@ -1,0 +1,56 @@
+# Fly.io launch config for the Reddit Scanner.
+#
+# The Dockerfile at repo root builds a single image that serves both the
+# React SPA and the Express API on internal port 4000. Postgres lives
+# outside this app — attach a Fly Postgres cluster with:
+#
+#     fly postgres create --name reddit-scanner-db --region iad
+#     fly postgres attach reddit-scanner-db --app reddit-scanner
+#
+# The attach step writes DATABASE_URL into this app's secrets, so nothing
+# to configure by hand.
+#
+# App name may need a random suffix if `reddit-scanner` is already taken
+# on Fly; run `fly launch --no-deploy` once to reserve one.
+
+app = "reddit-scanner"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Non-secret defaults. Auth mode is `password` so the app requires a
+# real login — set SUPER_ADMIN_EMAIL / SUPER_ADMIN_PASSWORD via
+# `fly secrets set …` to bootstrap the first admin on boot.
+#
+# Reddit + Resend credentials also live in secrets:
+#   fly secrets set REDDIT_CLIENT_ID=… REDDIT_CLIENT_SECRET=… REDDIT_USER_AGENT="reddit-scanner (by /u/YOUR_USERNAME)"
+#   fly secrets set RESEND_API_KEY=… EMAIL_FROM_ADDRESS="Reddit Scanner <no-reply@your-domain>"
+#   fly secrets set SCAN_TRIGGER_TOKEN=…   # optional external-cron bearer token
+[env]
+  NODE_ENV = "production"
+  PORT = "4000"
+  AUTH_MODE = "password"
+  SCHEDULER_ENABLED = "true"
+
+# Standard Fly HTTP service: force HTTPS, expose 4000 internally, keep at
+# least one machine hot so the in-process cron scheduler runs reliably.
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "10s"
+  method = "get"
+  path = "/api/health"
+
+# Modest VM — this app is IO-bound on Postgres + Reddit's API, not CPU.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
