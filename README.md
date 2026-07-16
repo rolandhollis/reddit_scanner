@@ -56,16 +56,20 @@ cp .env.example .env    # then fill in Reddit + Resend credentials
 npm install
 npm run migrate
 npm run seed
-npm run dev             # http://localhost:4000
+npm run dev             # http://localhost:4100
 
 # 3. Frontend (in a second terminal)
 cd frontend
 cp .env.example .env
 npm install
-npm run dev             # http://localhost:5173
+npm run dev             # http://localhost:5273
 ```
 
-Open `http://localhost:5173` and log in as the seeded admin
+> Dev ports are 4100 / 5273 (not the Vite/Node defaults 4000 / 5173) so
+> this app can run at the same time as sibling apps like Waypoint. The
+> production Docker image still exposes 4000 — see [DEPLOY.md](DEPLOY.md).
+
+Open `http://localhost:5273` and log in as the seeded admin
 (`admin@example.com` / `ChangeMeNow!2026` — override via `SUPER_ADMIN_EMAIL`
 / `SUPER_ADMIN_PASSWORD` in `backend/.env`).
 
@@ -123,7 +127,7 @@ docker-compose.yml       dev Postgres only
 ## Verify with the smoke test
 
 ```bash
-./scripts/smoke.sh   # exercises the full API round-trip against localhost:4000
+./scripts/smoke.sh   # exercises the full API round-trip against localhost:4100
 ```
 
 CI runs this on every PR against a disposable Postgres. Reddit + email

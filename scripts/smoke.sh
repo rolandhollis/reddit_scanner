@@ -7,10 +7,12 @@
 # in test mode (SCAN_TEST_MODE=1) which skips outbound HTTP and just
 # writes a synthetic mention row so the dedupe path is covered.
 #
-# Runs against localhost:4000. CI boots the API before calling this.
+# Runs against localhost:4100 (the dev default). Override via $API.
 set -euo pipefail
 
-API="${API:-http://localhost:4000/api}"
+# CI boots the API on port 4000 (fresh runner, no clash); local dev
+# uses 4100. Override via $API if you're pointing at a different host.
+API="${API:-http://localhost:4100/api}"
 
 # Any mock user id works — pick the seeded admin so we exercise the
 # admin-only write paths too.

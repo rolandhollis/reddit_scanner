@@ -10,7 +10,7 @@ export type AuthMode = "mock" | "password";
 
 export const config = {
   port: Number(process.env.PORT ?? 4000),
-  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
+  corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5273",
   databaseUrl: required(
     "DATABASE_URL",
     "postgres://reddit_scanner:reddit_scanner@localhost:5434/reddit_scanner",
@@ -84,5 +84,5 @@ export const config = {
    * to the local dev URL so emails don't accidentally leak internal
    * Fly hostnames when the env var is missing.
    */
-  publicAppUrl: process.env.PUBLIC_APP_URL ?? "http://localhost:5173",
+  publicAppUrl: process.env.PUBLIC_APP_URL ?? "http://localhost:5273",
 };

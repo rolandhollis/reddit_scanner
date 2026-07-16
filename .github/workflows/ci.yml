@@ -27,7 +27,9 @@ jobs:
     env:
       DATABASE_URL: postgres://reddit_scanner:reddit_scanner@localhost:5432/reddit_scanner
       AUTH_MODE: mock
-      PORT: "4000"
+      # Matches the local dev port (see backend/.env.example) so the
+      # smoke test's default API=http://localhost:4100/api "just works".
+      PORT: "4100"
       SCHEDULER_ENABLED: "false"
       # Stubbed so the app boots without needing real Reddit / Resend accounts in CI.
       REDDIT_CLIENT_ID: ci
@@ -61,7 +63,7 @@ jobs:
           node dist/index.js > /tmp/api.log 2>&1 &
           echo $! > /tmp/api.pid
           for i in $(seq 1 30); do
-            curl -fsS http://localhost:4000/api/health && break
+            curl -fsS http://localhost:4100/api/health && break
             sleep 1
           done
       - name: Smoke test
